@@ -1,0 +1,3118 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>E-Banking RAIFFEISEN</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --primary: #e2001a;
+      --primary-dark: #b00014;
+      --bg: #f5f5f7;
+      --card-bg: #ffffff;
+      --text-main: #222;
+      --text-muted: #777;
+      --border-soft: #e0e0e0;
+      --radius-card: 16px;
+      --shadow-soft: 0 8px 20px rgba(0,0,0,0.06);
+    }
+
+    body.dark-mode {
+      --bg: #17171b;
+      --card-bg: #1f2024;
+      --text-main: #f5f5f5;
+      --text-muted: #a0a0aa;
+      --border-soft: #34343c;
+      --shadow-soft: 0 8px 20px rgba(0,0,0,0.7);
+      background: radial-gradient(circle at top, #20212a 0, #16171f 55%, #101018 100%);
+      color: var(--text-main);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #ffffff 0, #f5f5f7 55%, #e6e6ea 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+    }
+
+    #app-root {
+      width: 100%;
+      max-width: 1200px;
+      margin: 24px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+      border-radius: 24px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      backdrop-filter: blur(12px);
+      position: relative;
+    }
+
+    body.dark-mode #app-root {
+      background: rgba(20, 20, 26, 0.95);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+    }
+
+    header.app-header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-weight: 800;
+      box-shadow: 0 0 0 2px rgba(226, 0, 26, 0.2);
+    }
+
+    .brand-text-title {
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+    }
+
+    .brand-text-sub {
+      font-size: 0.75rem;
+      opacity: 0.8;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .user-info-header {
+      text-align: right;
+      font-size: 0.85rem;
+    }
+
+    .user-info-header strong {
+      display: block;
+      font-size: 0.95rem;
+    }
+
+    main.app-main {
+      position: relative;
+      min-height: 520px;
+      background: linear-gradient(120deg, #fafbfc, #f1f3f7);
+    }
+
+    body.dark-mode main.app-main {
+      background: linear-gradient(120deg, #20212a, #181922);
+    }
+
+    /* Sidebar */
+    nav.sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 240px;
+      max-width: 80%;
+      transform: translateX(-100%);
+      transition: transform 0.25s ease;
+      z-index: 30;
+      border-right: 1px solid var(--border-soft);
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+    }
+
+    body.dark-mode nav.sidebar {
+      background: #20222b;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.6);
+    }
+
+    body.sidebar-open nav.sidebar {
+      transform: translateX(0);
+    }
+
+    #sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: transparent;
+      display: none;
+      z-index: 25;
+    }
+
+    body.sidebar-open #sidebar-overlay {
+      display: block;
+    }
+
+    .sidebar-section-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .nav-list {
+      list-style: none;
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-item {
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      color: var(--text-main);
+      transition: background 0.2s, color 0.2s, transform 0.05s;
+    }
+
+    .nav-item span.icon {
+      width: 20px;
+      display: inline-flex;
+      justify-content: center;
+    }
+
+    .nav-item.active {
+      background: rgba(226, 0, 26, 0.12);
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
+
+    .nav-item:hover {
+      background: rgba(0,0,0,0.03);
+      transform: translateY(-1px);
+    }
+
+    body.dark-mode .nav-item:hover {
+      background: rgba(255,255,255,0.06);
+    }
+
+    .nav-item.active:hover {
+      background: rgba(226, 0, 26, 0.18);
+    }
+
+    .sidebar-footer {
+      margin-top: 24px;
+      border-top: 1px dashed var(--border-soft);
+      padding-top: 12px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .sidebar-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0,0,0,0.03);
+      padding: 4px 10px;
+      border-radius: 999px;
+      margin-top: 4px;
+    }
+
+    .content {
+      padding: 18px 22px 22px;
+      overflow: auto;
+    }
+
+    .content-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .content-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .content-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .badge-soft {
+      font-size: 0.75rem;
+      background: rgba(226, 0, 26, 0.08);
+      color: var(--primary-dark);
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius-card);
+      padding: 16px 18px;
+      box-shadow: var(--shadow-soft);
+      margin-bottom: 12px;
+    }
+
+    .card-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+
+    .card-header-row h2 {
+      font-size: 1rem;
+    }
+
+    .card-header-row small {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .accounts-list-vertical {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .account-card {
+      border-radius: 18px;
+      background: radial-gradient(circle at top left, #ffe5ea, #ffffff);
+      padding: 14px;
+      border: 1px solid rgba(226,0,26,0.1);
+      cursor: pointer;
+    }
+
+    body.dark-mode .account-card {
+      background: radial-gradient(circle at top left, #3a1b21, #262730);
+      border-color: rgba(226,0,26,0.4);
+    }
+
+    .account-row-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+      font-size: 0.85rem;
+    }
+
+    .account-iban {
+      font-family: "SF Mono", ui-monospace, Menlo, monospace;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .account-balance {
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+
+    .account-currency {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-left: 4px;
+    }
+
+    .chip-pill {
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,0.06);
+      background: rgba(255,255,255,0.7);
+      color: var(--text-muted);
+    }
+
+    .quick-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .btn {
+      border-radius: 999px;
+      padding: 8px 14px;
+      border: none;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.05s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      box-shadow: 0 6px 14px rgba(226, 0, 26, 0.35);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 9px 18px rgba(226, 0, 26, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .btn-ghost {
+      background: rgba(0,0,0,0.03);
+      color: var(--text-main);
+    }
+
+    body.dark-mode .btn-ghost {
+      background: rgba(255,255,255,0.04);
+      color: var(--text-main);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(0,0,0,0.06);
+      transform: translateY(-1px);
+    }
+
+    body.dark-mode .btn-ghost:hover {
+      background: rgba(255,255,255,0.08);
+    }
+
+    .transactions-list {
+      margin-top: 6px;
+      max-height: 260px;
+      overflow: auto;
+    }
+
+    .tx-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 8px 0;
+      border-bottom: 1px dashed rgba(0,0,0,0.06);
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .tx-row:last-child {
+      border-bottom: none;
+    }
+
+    .tx-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .tx-title {
+      font-weight: 500;
+    }
+
+    .tx-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .tx-amount {
+      font-weight: 600;
+    }
+
+    .tx-amount.negative {
+      color: #d02929;
+    }
+
+    .tx-amount.positive {
+      color: #1a7f3c;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .form-grid-1 {
+      grid-template-columns: 1fr;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.85rem;
+    }
+
+    .form-field label {
+      color: var(--text-muted);
+    }
+
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      padding: 7px 12px;
+      font-size: 0.9rem;
+      outline: none;
+      background: rgba(255,255,255,0.9);
+    }
+
+    body.dark-mode .form-field input,
+    body.dark-mode .form-field select,
+    body.dark-mode .form-field textarea {
+      background: #262730;
+      color: var(--text-main);
+      border-color: #3a3b44;
+    }
+
+    .form-field textarea {
+      border-radius: 12px;
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .form-field input:focus,
+    .form-field select:focus,
+    .form-field textarea:focus {
+      border-color: rgba(226, 0, 26, 0.6);
+      box-shadow: 0 0 0 1px rgba(226, 0, 26, 0.09);
+    }
+
+    .form-actions {
+      margin-top: 10px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .physical-card {
+      border-radius: 20px;
+      padding: 14px 16px;
+      background: radial-gradient(circle at top left, #ffccd5, #e2001a);
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .physical-card::after {
+      content: "";
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 18px solid rgba(255,255,255,0.15);
+      top: -40px;
+      right: -30px;
+    }
+
+    .physical-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      font-size: 0.8rem;
+      margin-bottom: 12px;
+    }
+
+    .physical-card-chip {
+      width: 32px;
+      height: 24px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #f7f7f7, #b7b7b7);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.25);
+    }
+
+    .physical-card-number {
+      font-family: "SF Mono", ui-monospace, Menlo, monospace;
+      letter-spacing: 0.12em;
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+    }
+
+    .physical-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.75rem;
+      margin-top: 6px;
+    }
+
+    .virtual-cards-list {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 200px;
+      overflow: auto;
+    }
+
+    .virtual-card-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,0.05);
+      background: rgba(255,255,255,0.9);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    body.dark-mode .virtual-card-row {
+      background: #262730;
+      border-color: #3a3b44;
+    }
+
+    .virtual-card-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .virtual-card-number {
+      font-family: ui-monospace, Menlo, monospace;
+    }
+
+    .status-pill {
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+
+    #login-screen {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top, #f7e5e8 0, #ffffff 30%, #f1f3f8 80%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 40;
+    }
+
+    body.dark-mode #login-screen {
+      background: radial-gradient(circle at top, #2e1a1e 0, #181822 30%, #101018 80%);
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(255,255,255,0.96);
+      border-radius: 24px;
+      padding: 22px 22px 18px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+      border: 1px solid rgba(255,255,255,0.7);
+      backdrop-filter: blur(12px);
+    }
+
+    body.dark-mode .login-card {
+      background: rgba(20,20,26,0.96);
+      border-color: #3a3b44;
+      color: var(--text-main);
+    }
+
+    .login-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .login-header .brand-logo {
+      box-shadow: 0 6px 14px rgba(226,0,26,0.35);
+    }
+
+    .login-title {
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-bottom: 2px;
+    }
+
+    .login-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .login-fields {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .login-footer {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      transform: translateY(120%);
+      background: #222;
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      z-index: 50;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+
+    #toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      background: rgba(0,0,0,0.04);
+      color: var(--text-muted);
+    }
+
+    body.dark-mode .pill {
+      background: rgba(255,255,255,0.06);
+    }
+
+    .category-chip {
+      display: inline-flex;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      background: rgba(0,0,0,0.04);
+      color: var(--text-muted);
+      margin-left: 4px;
+    }
+
+    body.dark-mode .category-chip {
+      background: rgba(255,255,255,0.06);
+    }
+
+    @media (max-width: 700px) {
+      #app-root {
+        margin: 0;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Schermata di login -->
+  <div id="login-screen">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="brand-logo">R</div>
+        <div>
+          <div class="login-title">E-Banking RAIFFEISEN</div>
+          <div class="login-subtitle">
+            Accesso • Inserisci utente e PIN
+          </div>
+        </div>
+      </div>
+      <div class="login-fields">
+        <div class="form-field">
+          <label for="login-user">Utente</label>
+          <input id="login-user" type="text" placeholder="Codice utente" />
+        </div>
+        <div class="form-field">
+          <label for="login-pin">PIN</label>
+          <input id="login-pin" type="password" placeholder="••••••" />
+        </div>
+        <div class="form-actions" style="justify-content: space-between; margin-top: 4px;">
+          <div style="display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--text-muted);">
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+              <input type="checkbox" id="login-dark-toggle" />
+              Dark mode
+            </label>
+          </div>
+          <button id="login-btn" class="btn btn-primary">
+            <span id="login-btn-text">Accedi</span> <span>⟶</span>
+          </button>
+        </div>
+      </div>
+      <div class="login-footer">
+        <span>E-Banking</span>
+        <span>Accesso sicuro</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- App -->
+  <div id="app-root" style="display: none;">
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-logo">R</div>
+        <div>
+          <div class="brand-text-title">RAIFFEISEN</div>
+          <div class="brand-text-sub">E-Banking</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <button id="btn-toggle-balance" class="btn btn-ghost" title="Mostra/nascondi saldi">👁‍🗨 Saldo</button>
+        <button id="btn-toggle-theme" class="btn btn-ghost" title="Tema chiaro/scuro">🌙</button>
+        <button id="btn-toggle-menu" class="btn btn-ghost">☰ Menù</button>
+        <div class="user-info-header">
+          <strong id="header-username">Utente</strong>
+          <span id="header-last-login">Ultimo accesso: -</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Overlay per chiudere il menu cliccando fuori -->
+    <div id="sidebar-overlay"></div>
+
+    <main class="app-main">
+      <nav class="sidebar">
+        <div>
+          <div class="sidebar-section-title">Navigazione</div>
+          <ul class="nav-list">
+            <li class="nav-item active" data-view="dashboard">
+              <span class="icon">🏠</span><span>Dashboard</span>
+            </li>
+            <li class="nav-item" data-view="qr">
+              <span class="icon">📄</span><span>Pagamento QR</span>
+            </li>
+            <li class="nav-item" data-view="transfer">
+              <span class="icon">🔁</span><span>Bonifico</span>
+            </li>
+            <li class="nav-item" data-view="cards">
+              <span class="icon">💳</span><span>Carte</span>
+            </li>
+            <li class="nav-item" data-view="movements">
+              <span class="icon">📊</span><span>Movimenti</span>
+            </li>
+            <li class="nav-item" data-view="profile">
+              <span class="icon">👤</span><span>Profilo</span>
+            </li>
+          </ul>
+        </div>
+        <div class="sidebar-footer">
+          <div>Stato:</div>
+          <div class="sidebar-badge">
+            <span>✅</span> <span>Attivo</span>
+          </div>
+        </div>
+      </nav>
+
+      <section class="content">
+        <!-- Dashboard -->
+        <div id="view-dashboard">
+          <div class="content-header">
+            <div>
+              <div class="content-title">Benvenuta nel tuo e-banking</div>
+              <div class="content-subtitle">
+                Riepilogo conti, saldo totale e movimenti recenti.
+              </div>
+            </div>
+            <div class="badge-soft">RAIFFEISEN</div>
+          </div>
+
+          <!-- Conti -->
+          <div class="card">
+            <div class="card-header-row">
+              <h2>Conti</h2>
+              <small>Clicca su un conto per i dettagli</small>
+            </div>
+            <div class="accounts-list-vertical" id="accounts-container"></div>
+          </div>
+
+          <!-- Saldo totale + riepilogo categorie -->
+          <div class="card">
+            <div class="card-header-row">
+              <h2>Saldo totale</h2>
+              <small>Somma conti in CHF</small>
+            </div>
+            <div class="account-balance" id="total-balance">CHF 0.00</div>
+            <div class="quick-actions" style="margin-top: 12px;">
+              <button class="btn btn-primary" data-jump="qr">
+                📄 Paga fattura QR
+              </button>
+              <button class="btn btn-ghost" data-jump="transfer">
+                🔁 Nuovo bonifico
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header-row">
+              <h2>Spese per categoria (ultimo mese)</h2>
+              <small>Solo uscite (tutti i conti)</small>
+            </div>
+            <div id="category-summary" style="font-size:0.85rem;color:var(--text-muted);">
+              Nessuna spesa registrata nell’ultimo mese.
+            </div>
+          </div>
+
+          <!-- Movimenti recenti -->
+          <div class="card">
+            <div class="card-header-row">
+              <h2>Movimenti recenti</h2>
+              <small>Ultimi movimenti su tutti i conti</small>
+            </div>
+            <div class="transactions-list" id="tx-list-dashboard"></div>
+          </div>
+        </div>
+
+        <!-- Pagamento QR -->
+        <div id="view-qr" style="display: none;">
+          <div class="content-header">
+            <div>
+              <div class="content-title">Pagamento fattura QR</div>
+              <div class="content-subtitle">
+                Inserisci i dati della fattura QR oppure usa la fotocamera.
+              </div>
+            </div>
+            <button class="btn btn-ghost" data-jump="dashboard">← Dashboard</button>
+          </div>
+
+          <div class="card">
+            <div class="card-header-row">
+              <h2>Dati pagamento</h2>
+              <small>Compila i campi o scansiona il QR</small>
+            </div>
+
+            <div class="quick-actions" style="margin-bottom: 8px;">
+              <button type="button" class="btn btn-ghost" id="btn-qr-scan">
+                📷 Scannerizza QR con fotocamera
+              </button>
+            </div>
+            <div id="qr-scan-area" style="display:none; margin-bottom:10px;">
+              <video id="qr-video" style="width:100%; max-width:360px; border-radius:12px; border:1px solid var(--border-soft);" playsinline></video>
+              <div style="margin-top:6px; font-size:0.8rem; color:var(--text-muted);">
+                Inquadra il QR. I campi verranno compilati automaticamente.
+              </div>
+            </div>
+
+            <form id="form-qr">
+              <div class="form-grid">
+                <div class="form-field">
+                  <label>Conto addebito</label>
+                  <select id="qr-account"></select>
+                </div>
+                <div class="form-field">
+                  <label>Importo (CHF)</label>
+                  <input type="number" step="0.05" min="0" id="qr-amount" required />
+                </div>
+                <div class="form-field">
+                  <label>Intestatario / Beneficiario</label>
+                  <input type="text" id="qr-beneficiary" placeholder="Azienda SA" required />
+                </div>
+                <div class="form-field">
+                  <label>Riferimento QR</label>
+                  <input type="text" id="qr-reference" placeholder="00000000000000000000" required />
+                </div>
+                <div class="form-field">
+                  <label>Categoria</label>
+                  <select id="qr-category">
+                    <option value="">(Nessuna)</option>
+                    <option value="Spesa">Spesa</option>
+                    <option value="Casa">Casa</option>
+                    <option value="Trasporti">Trasporti</option>
+                    <option value="Salute">Salute</option>
+                    <option value="Tempo libero">Tempo libero</option>
+                    <option value="Altro">Altro</option>
+                  </select>
+                </div>
+                <div class="form-field" style="grid-column: 1 / -1;">
+                  <label>
+                    <input type="checkbox" id="qr-instant" style="margin-right:6px;">
+                    Pagamento istantaneo (+CHF 2.00)
+                  </label>
+                </div>
+                <div class="form-field form-grid-1" style="grid-column: 1 / -1;">
+                  <label>Descrizione (facoltativa)</label>
+                  <textarea id="qr-description" placeholder="Fattura n. 1234"></textarea>
+                </div>
+              </div>
+              <div class="form-actions">
+                <button type="reset" class="btn btn-ghost">Annulla</button>
+                <button type="submit" class="btn btn-primary">Paga fattura QR</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Bonifico -->
+        <div id="view-transfer" style="display: none;">
+          <div class="content-header">
+            <div>
+              <div class="content-title">Bonifico</div>
+              <div class="content-subtitle">
+                Invia un pagamento verso un altro conto (esterno).
+              </div>
+            </div>
+            <button class="btn btn-ghost" data-jump="dashboard">← Dashboard</button>
+          </div>
+
+          <div class="card">
+            <div class="card-header-row">
+              <h2>Beneficiari e template</h2>
+              <small>Seleziona un beneficiario salvato o un modello</small>
+            </div>
+            <div class="form-grid">
+              <div class="form-field">
+                <label>Beneficiario salvato</label>
+                <select id="tr-benef-saved">
+                  <option value="">(Nessuno)</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label>Template pagamento</label>
+                <select id="tr-template">
+                  <option value="">(Nessuno)</option>
+                  <option value="Affitto">Affitto</option>
+                  <option value="Telefonia">Telefonia</option>
+                  <option value="Assicurazione">Assicurazione</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header-row">
+              <h2>Dati bonifico</h2>
+              <small>Standard o istantaneo (+CHF 2.00)</small>
+            </div>
+            <form id="form-transfer">
+              <div class="form-grid">
+                <div class="form-field">
+                  <label>Da conto</label>
+                  <select id="tr-from"></select>
+                </div>
+                <div class="form-field">
+                  <label>Nome beneficiario</label>
+                  <input type="text" id="tr-benef-name" placeholder="Nome e cognome / azienda" />
+                </div>
+                <div class="form-field">
+                  <label>IBAN destinatario</label>
+                  <input type="text" id="tr-to" placeholder="CHxx xxxx xxxx xxxx xxxx x" required />
+                </div>
+                <div class="form-field">
+                  <label>Importo (CHF)</label>
+                  <input type="number" step="0.05" min="0" id="tr-amount" required />
+                </div>
+                <div class="form-field">
+                  <label>Data esecuzione</label>
+                  <input type="date" id="tr-date" />
+                </div>
+                <div class="form-field">
+                  <label>Categoria</label>
+                  <select id="tr-category">
+                    <option value="">(Nessuna)</option>
+                    <option value="Spesa">Spesa</option>
+                    <option value="Casa">Casa</option>
+                    <option value="Trasporti">Trasporti</option>
+                    <option value="Salute">Salute</option>
+                    <option value="Tempo libero">Tempo libero</option>
+                    <option value="Altro">Altro</option>
+                  </select>
+                </div>
+                <div class="form-field" style="grid-column: 1 / -1;">
+                  <label>
+                    <input type="checkbox" id="tr-instant" style="margin-right:6px;">
+                    Bonifico istantaneo (+CHF 2.00)
+                  </label>
+                </div>
+                <div class="form-field" style="grid-column: 1 / -1;">
+                  <label>
+                    <input type="checkbox" id="tr-save-benef" style="margin-right:6px;">
+                    Salva questo beneficiario in rubrica
+                  </label>
+                </div>
+                <div class="form-field form-grid-1" style="grid-column: 1 / -1;">
+                  <label>Motivo pagamento</label>
+                  <textarea id="tr-reason" placeholder="Pagamento fattura, ecc."></textarea>
+                </div>
+              </div>
+              <div class="form-actions">
+                <button type="reset" class="btn btn-ghost">Pulisci campi</button>
+                <button type="submit" class="btn btn-primary">Invia bonifico</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card" id="recurring-card" style="display:block;">
+            <div class="card-header-row">
+              <h2>Pagamenti ricorrenti</h2>
+              <small>Registrati (solo elenco, non eseguiti automaticamente)</small>
+            </div>
+            <div class="form-grid">
+              <div class="form-field">
+                <label>Crea da ultimo bonifico eseguito</label>
+                <select id="recurring-source">
+                  <option value="">(Seleziona movimento dopo averne eseguito uno)</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label>Frequenza</label>
+                <select id="recurring-frequency">
+                  <option value="mensile">Mensile</option>
+                  <option value="trimestrale">Trimestrale</option>
+                  <option value="annuale">Annuale</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-actions" style="justify-content:flex-start;">
+              <button class="btn btn-primary" id="btn-add-recurring">➕ Aggiungi pagamento ricorrente</button>
+            </div>
+            <div id="recurring-list" style="margin-top:8px;font-size:0.85rem;color:var(--text-muted);">
+              Nessun pagamento ricorrente registrato.
+            </div>
+          </div>
+        </div>
+
+        <!-- Carte -->
+        <div id="view-cards" style="display: none;">
+          <div class="content-header">
+            <div>
+              <div class="content-title">Carte di debito e carte virtuali</div>
+              <div class="content-subtitle">
+                Gestione carta di debito e creazione carte virtuali.
+              </div>
+            </div>
+            <button class="btn btn-ghost" data-jump="dashboard">← Dashboard</button>
+          </div>
+
+          <div class="card">
+            <div class="card-header-row">
+              <h2>Carta di debito</h2>
+              <small>Collegata al conto principale</small>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <div style="font-size:0.8rem;color:var(--text-muted);">
+                Stato carta:
+                <span id="debit-status-label" class="pill">Attiva</span>
+              </div>
+              <label style="font-size:0.8rem;display:flex;align-items:center;gap:4px;cursor:pointer;">
+                <input type="checkbox" id="debit-toggle" checked />
+                Attiva / Sospesa
+              </label>
+            </div>
+            <div class="physical-card js-debit-card">
+              <div class="physical-card-top">
+                <div>
+                  <div style="font-size: 0.75rem; opacity: 0.8;">RAIFFEISEN</div>
+                  <div style="font-weight: 600; margin-top: 2px;">RAIFFEISEN Debit</div>
+                </div>
+                <div class="physical-card-chip"></div>
+              </div>
+              <div class="physical-card-number" id="debit-card-number">
+                5574  52••  ••36  6685
+              </div>
+              <div class="physical-card-footer">
+                <div>
+                  <div style="opacity: 0.7;">TITOLARE</div>
+                  <div style="font-size: 0.8rem;" id="card-holder-name">LAURA MARIA MAZZAMUTO</div>
+                </div>
+                <div>
+                  <div style="opacity: 0.7; font-size: 0.7rem;">VALIDA FINO A</div>
+                  <div style="font-size: 0.8rem;">09/26</div>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top: 10px; font-size: 0.8rem; color: var(--text-muted);">
+              Clicca sulla carta per visualizzare i dati completi.
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header-row">
+              <h2>Carte virtuali</h2>
+              <small>Per acquisti online</small>
+            </div>
+            <div class="form-actions" style="justify-content: flex-start; margin-bottom: 6px;">
+              <button class="btn btn-primary" id="btn-add-virtual">
+                ➕ Crea nuova carta virtuale
+              </button>
+            </div>
+            <div class="virtual-cards-list" id="virtual-cards"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-header-row">
+              <h2>Storico utilizzo carte (manuale)</h2>
+              <small>Registra rapidamente un pagamento con carta</small>
+            </div>
+            <form id="form-card-payment">
+              <div class="form-grid">
+                <div class="form-field">
+                  <label>Conto addebito</label>
+                  <select id="card-pay-account"></select>
+                </div>
+                <div class="form-field">
+                  <label>Importo (CHF)</label>
+                  <input type="number" step="0.05" min="0" id="card-pay-amount" />
+                </div>
+                <div class="form-field">
+                  <label>Descrizione</label>
+                  <input type="text" id="card-pay-desc" placeholder="Pagamento con carta" />
+                </div>
+                <div class="form-field">
+                  <label>Categoria</label>
+                  <select id="card-pay-category">
+                    <option value="">(Nessuna)</option>
+                    <option value="Spesa">Spesa</option>
+                    <option value="Casa">Casa</option>
+                    <option value="Trasporti">Trasporti</option>
+                    <option value="Salute">Salute</option>
+                    <option value="Tempo libero">Tempo libero</option>
+                    <option value="Altro">Altro</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Registra pagamento carta</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Movimenti -->
+        <div id="view-movements" style="display: none;">
+          <div class="content-header">
+            <div>
+              <div class="content-title">Elenco movimenti</div>
+              <div class="content-subtitle">
+                Storico completo delle operazioni sui tuoi conti.
+              </div>
+            </div>
+            <button class="btn btn-ghost" data-jump="dashboard">← Dashboard</button>
+          </div>
+
+          <div class="card">
+            <div class="card-header-row">
+              <h2>Filtri</h2>
+              <small>Conto, tipo, testo, periodo</small>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;">
+              <div class="form-field" style="min-width:150px;">
+                <label>Conto</label>
+                <select id="filter-account">
+                  <option value="all">Tutti i conti</option>
+                </select>
+              </div>
+              <div class="form-field" style="min-width:160px;">
+                <label>Tipo operazione</label>
+                <select id="filter-type">
+                  <option value="all">Tutte</option>
+                  <option value="qr">Pagamenti QR</option>
+                  <option value="qr_instant">QR istantanei</option>
+                  <option value="transfer">Bonifici</option>
+                  <option value="transfer_instant">Bonifici istantanei</option>
+                  <option value="internal">Trasferimenti interni</option>
+                  <option value="card">Pagamenti carta</option>
+                </select>
+              </div>
+              <div class="form-field" style="min-width:160px;">
+                <label>Periodo</label>
+                <select id="filter-period">
+                  <option value="all">Tutto</option>
+                  <option value="7d">Ultimi 7 giorni</option>
+                  <option value="30d">Ultimi 30 giorni</option>
+                  <option value="month">Questo mese</option>
+                  <option value="year">Quest’anno</option>
+                  <option value="custom">Personalizzato</option>
+                </select>
+              </div>
+              <div class="form-field" style="min-width:140px;">
+                <label>Dal</label>
+                <input type="date" id="filter-from" disabled />
+              </div>
+              <div class="form-field" style="min-width:140px;">
+                <label>Al</label>
+                <input type="date" id="filter-to" disabled />
+              </div>
+              <div class="form-field" style="flex:1;min-width:150px;">
+                <label>Cerca testo</label>
+                <input type="text" id="filter-search" placeholder="Beneficiario, IBAN, descrizione..." />
+              </div>
+              <div class="form-field" style="min-width:140px;">
+                <button class="btn btn-ghost" id="btn-export-csv" style="width:100%;">⬇ Esporta CSV</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header-row">
+              <h2>Movimenti</h2>
+              <small>Clicca sulla riga per i dettagli</small>
+            </div>
+            <div class="transactions-list" id="tx-list-full"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-header-row">
+              <h2>Estratto conto mese corrente</h2>
+              <small>Basato sui filtri selezionati</small>
+            </div>
+            <div id="statement-summary" style="font-size:0.85rem;color:var(--text-muted);">
+              Nessun dato disponibile per questo mese.
+            </div>
+          </div>
+        </div>
+
+        <!-- Dettaglio conto -->
+        <div id="view-account-detail" style="display:none;">
+          <div class="content-header">
+            <div>
+              <div class="content-title">Dettaglio conto</div>
+              <div class="content-subtitle">
+                Informazioni e movimenti del conto selezionato.
+              </div>
+            </div>
+            <button class="btn btn-ghost" id="btn-account-back">← Dashboard</button>
+          </div>
+          <div class="card">
+            <div class="card-header-row">
+              <h2 id="account-detail-name">Conto</h2>
+            </div>
+            <div style="font-size:0.9rem; line-height:1.6;">
+              <div><strong>IBAN:</strong> <span id="account-detail-iban"></span></div>
+              <div><strong>Saldo:</strong> <span id="account-detail-balance"></span></div>
+              <div><strong>Tipo:</strong> <span id="account-detail-type"></span></div>
+            </div>
+          </div>
+
+          <!-- Trasferimento interno -->
+          <div class="card" style="margin-top:12px;">
+            <div class="card-header-row">
+              <h2>Trasferimento tra i tuoi conti</h2>
+              <small>Spostamento interno di fondi</small>
+            </div>
+            <form id="form-account-transfer">
+              <div class="form-grid">
+                <div class="form-field">
+                  <label>Da questo conto</label>
+                  <input type="text" id="acc-transfer-from-label" disabled />
+                </div>
+                <div class="form-field">
+                  <label>A conto</label>
+                  <select id="acc-transfer-target"></select>
+                </div>
+                <div class="form-field">
+                  <label>Importo (CHF)</label>
+                  <input type="number" step="0.05" min="0" id="acc-transfer-amount" required />
+                </div>
+                <div class="form-field form-grid-1" style="grid-column: 1 / -1;">
+                  <label>Motivo (facoltativo)</label>
+                  <textarea id="acc-transfer-reason" placeholder="Risparmio, spostamento fondi, ecc."></textarea>
+                </div>
+              </div>
+              <div class="form-actions">
+                <button type="reset" class="btn btn-ghost">Annulla</button>
+                <button type="submit" class="btn btn-primary">Trasferisci</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card" style="margin-top:12px;">
+            <div class="card-header-row">
+              <h2>Movimenti del conto</h2>
+              <small>Operazioni collegate a questo conto</small>
+            </div>
+            <div class="transactions-list" id="tx-list-account"></div>
+          </div>
+        </div>
+
+        <!-- Dettaglio movimento -->
+        <div id="view-tx-detail" style="display:none;">
+          <div class="content-header">
+            <div>
+              <div class="content-title">Dettaglio movimento</div>
+              <div class="content-subtitle">
+                Informazioni complete sul pagamento selezionato.
+              </div>
+            </div>
+            <button class="btn btn-ghost" id="btn-tx-back">← Torna indietro</button>
+          </div>
+          <div class="card">
+            <div id="tx-detail-body" style="font-size:0.9rem; line-height:1.6;"></div>
+          </div>
+        </div>
+
+        <!-- Profilo -->
+        <div id="view-profile" style="display:none;">
+          <div class="content-header">
+            <div>
+              <div class="content-title">Profilo utente</div>
+              <div class="content-subtitle">
+                Informazioni di base e ultimo accesso.
+              </div>
+            </div>
+            <button class="btn btn-ghost" data-jump="dashboard">← Dashboard</button>
+          </div>
+          <div class="card">
+            <div class="card-header-row">
+              <h2>Dati utente</h2>
+              <small>Informazioni locali, non inviate altrove</small>
+            </div>
+            <div style="font-size:0.9rem;line-height:1.6;">
+              <div><strong>Nome:</strong> <span id="profile-name">-</span></div>
+              <div><strong>Codice utente:</strong> <span id="profile-usercode">13319-0906</span></div>
+              <div><strong>Ultimo accesso:</strong> <span id="profile-last-login">-</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+
+  <script>
+    const debitCardData = {
+      holder: "Laura Maria Mazzamuto",
+      maskedNumber: "5574  52••  ••36  6685",
+      fullNumber: "5574  5203  0636  6685",
+      expiry: "09/26",
+      cvv: "194"
+    };
+
+    const STORAGE_KEY = "ebanking_raiffeisen_state_v2";
+
+    const state = {
+      userName: "Utente",
+      lastLogin: null,
+      hideBalances: false,
+      darkMode: false,
+      debitPaused: false,
+      accounts: [
+        {
+          id: "contocorrente",
+          name: "Conto privato CHF",
+          iban: "CH12 8123 4000 1234 5678 9",
+          balance: 50000.00,
+          type: "Privato"
+        },
+        {
+          id: "risparmio",
+          name: "Conto di risparmio",
+          iban: "CH56 8123 4000 9876 5432 1",
+          balance: 0.00,
+          type: "Risparmio"
+        }
+      ],
+      selectedAccountId: "contocorrente",
+      transactions: [],
+      virtualCards: [],
+      beneficiaries: [],
+      recurringPayments: [],
+      nextTxId: 1,
+      nextCardId: 1
+    };
+
+    let currentView = "dashboard";
+    let lastViewBeforeDetail = "movements";
+    let currentAccountDetailId = null;
+    let filterState = {
+      accountId: "all",
+      type: "all",
+      period: "all",
+      text: "",
+      from: null,
+      to: null
+    };
+
+    let sessionTimer = null;
+    const SESSION_TIMEOUT_MS = 5 * 60 * 1000; // 5 minuti
+
+    function resetSessionTimer() {
+      if (!document.getElementById("app-root") || document.getElementById("app-root").style.display === "none") return;
+      if (sessionTimer) clearTimeout(sessionTimer);
+      sessionTimer = setTimeout(() => {
+        logoutForTimeout();
+      }, SESSION_TIMEOUT_MS);
+    }
+
+    function logoutForTimeout() {
+      document.getElementById("app-root").style.display = "none";
+      document.getElementById("login-screen").style.display = "flex";
+      showToast("Sessione scaduta per inattività.");
+    }
+
+    function saveState() {
+      try {
+        const data = {
+          userName: state.userName,
+          lastLogin: state.lastLogin,
+          hideBalances: state.hideBalances,
+          darkMode: state.darkMode,
+          debitPaused: state.debitPaused,
+          accounts: state.accounts,
+          transactions: state.transactions,
+          virtualCards: state.virtualCards,
+          beneficiaries: state.beneficiaries,
+          recurringPayments: state.recurringPayments,
+          nextTxId: state.nextTxId,
+          nextCardId: state.nextCardId
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      } catch (e) {
+        console.error("Errore salvataggio stato:", e);
+      }
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        if (data.userName) state.userName = data.userName;
+        if (data.lastLogin) state.lastLogin = data.lastLogin;
+        if (typeof data.hideBalances === "boolean") state.hideBalances = data.hideBalances;
+        if (typeof data.darkMode === "boolean") state.darkMode = data.darkMode;
+        if (typeof data.debitPaused === "boolean") state.debitPaused = data.debitPaused;
+        if (Array.isArray(data.accounts)) state.accounts = data.accounts;
+        if (Array.isArray(data.transactions)) state.transactions = data.transactions;
+        if (Array.isArray(data.virtualCards)) state.virtualCards = data.virtualCards;
+        if (Array.isArray(data.beneficiaries)) state.beneficiaries = data.beneficiaries;
+        if (Array.isArray(data.recurringPayments)) state.recurringPayments = data.recurringPayments;
+        if (typeof data.nextTxId === "number") state.nextTxId = data.nextTxId;
+        if (typeof data.nextCardId === "number") state.nextCardId = data.nextCardId;
+      } catch (e) {
+        console.error("Errore lettura stato:", e);
+      }
+    }
+
+    function ensureInitialIncomingTx() {
+      const exists = state.transactions.some(tx =>
+        tx.type === "transfer" &&
+        tx.amount === 50000 &&
+        tx.details &&
+        tx.details.fromName === "Simone Tassone"
+      );
+
+      if (!exists) {
+        const tx = {
+          id: state.nextTxId++,
+          type: "transfer",
+          title: "Bonifico da Simone Tassone",
+          subtitle: "Bonifico in entrata",
+          date: "2025-11-28",
+          time: "08:35:00",
+          createdAt: "2025-11-28T08:35:00.000Z",
+          amount: 50000.00,
+          accountId: "contocorrente",
+          details: {
+            fromName: "Simone Tassone",
+            fromIban: "CH90 8080 8009 7383 3433 9",
+            reason: "Bonifico in entrata",
+            instant: false,
+            fee: 0,
+            amountBase: 50000.00,
+            totalDebit: 0,
+            fromAccountId: null,
+            fromAccountIban: "CH90 8080 8009 7383 3433 9",
+            creditedInternalAccount: "contocorrente",
+            category: "Altro"
+          }
+        };
+        state.transactions.push(tx);
+        saveState();
+      }
+    }
+
+    function formatAmount(amount) {
+      const sign = amount >= 0 ? "" : "-";
+      const abs = Math.abs(amount).toFixed(2);
+      return sign + "CHF " + abs.replace(".", "'");
+    }
+
+    function formatAmountMasked(amount) {
+      if (state.hideBalances) return "CHF •••••";
+      return formatAmount(amount);
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2800);
+    }
+
+    function getAccountById(id) {
+      return state.accounts.find(a => a.id === id);
+    }
+
+    function computeTotalBalance() {
+      return state.accounts.reduce((sum, a) => sum + a.balance, 0);
+    }
+
+    function renderHeader() {
+      document.getElementById("header-username").textContent = state.userName;
+      document.getElementById("card-holder-name").textContent = debitCardData.holder.toUpperCase();
+      const lastLoginLabel = document.getElementById("header-last-login");
+      const profileLast = document.getElementById("profile-last-login");
+      if (state.lastLogin) {
+        lastLoginLabel.textContent = "Ultimo accesso: " + state.lastLogin;
+        profileLast.textContent = state.lastLogin;
+      } else {
+        lastLoginLabel.textContent = "Ultimo accesso: -";
+        profileLast.textContent = "-";
+      }
+      document.getElementById("profile-name").textContent = state.userName;
+    }
+
+    function applyTheme() {
+      if (state.darkMode) {
+        document.body.classList.add("dark-mode");
+      } else {
+        document.body.classList.remove("dark-mode");
+      }
+    }
+
+    function renderAccounts() {
+      const container = document.getElementById("accounts-container");
+      container.innerHTML = "";
+      state.accounts.forEach(acc => {
+        const div = document.createElement("div");
+        div.className = "account-card";
+        div.dataset.accountId = acc.id;
+
+        div.innerHTML = `
+          <div class="account-row-top">
+            <span>${acc.name}</span>
+            <span class="chip-pill">${acc.type}</span>
+          </div>
+          <div class="account-iban">${acc.iban}</div>
+          <div style="margin-top: 8px;">
+            <span class="account-balance">${formatAmountMasked(acc.balance)}</span>
+            <span class="account-currency">CHF</span>
+          </div>
+        `;
+
+        div.addEventListener("click", () => {
+          state.selectedAccountId = acc.id;
+          openAccountDetail(acc.id);
+          refreshSelects();
+        });
+
+        container.appendChild(div);
+      });
+
+      const total = computeTotalBalance();
+      document.getElementById("total-balance").textContent = formatAmountMasked(total);
+
+      renderFilterAccountOptions();
+      refreshCardPayAccount();
+    }
+
+    function renderFilterAccountOptions() {
+      const sel = document.getElementById("filter-account");
+      if (!sel) return;
+      const current = filterState.accountId || "all";
+      sel.innerHTML = "";
+      const optAll = document.createElement("option");
+      optAll.value = "all";
+      optAll.textContent = "Tutti i conti";
+      sel.appendChild(optAll);
+      state.accounts.forEach(acc => {
+        const opt = document.createElement("option");
+        opt.value = acc.id;
+        opt.textContent = acc.name;
+        sel.appendChild(opt);
+      });
+      sel.value = current;
+    }
+
+    function renderTransactions(targetId, limit = null, filter = {}) {
+      const container = document.getElementById(targetId);
+      if (!container) return;
+      container.innerHTML = "";
+
+      let txs = [...state.transactions].sort((a, b) =>
+        new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)
+      );
+
+      const accountFilter = filter.accountId || "all";
+      const typeFilter = filter.type || "all";
+      const period = filter.period || "all";
+      const text = (filter.text || "").toLowerCase();
+      const fromDate = filter.from ? new Date(filter.from) : null;
+      const toDate = filter.to ? new Date(filter.to) : null;
+
+      txs = txs.filter(tx => {
+        if (accountFilter !== "all" && tx.accountId !== accountFilter) return false;
+
+        if (typeFilter !== "all") {
+          const instantFlag = tx.details && !!tx.details.instant;
+          if (typeFilter === "qr") return tx.type === "qr" && !instantFlag;
+          if (typeFilter === "qr_instant") return tx.type === "qr" && instantFlag;
+          if (typeFilter === "transfer") return tx.type === "transfer" && !instantFlag;
+          if (typeFilter === "transfer_instant") return tx.type === "transfer" && instantFlag;
+          if (typeFilter === "internal") return tx.type === "transfer-internal";
+          if (typeFilter === "card") return tx.type === "card";
+        }
+
+        if (period !== "all") {
+          const d = new Date(tx.date);
+          const now = new Date();
+          let start = null, end = null;
+
+          if (period === "7d") {
+            end = now;
+            start = new Date();
+            start.setDate(now.getDate() - 7);
+          } else if (period === "30d") {
+            end = now;
+            start = new Date();
+            start.setDate(now.getDate() - 30);
+          } else if (period === "month") {
+            start = new Date(now.getFullYear(), now.getMonth(), 1);
+            end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+          } else if (period === "year") {
+            start = new Date(now.getFullYear(), 0, 1);
+            end = new Date(now.getFullYear(), 11, 31);
+          } else if (period === "custom" && fromDate && toDate) {
+            start = fromDate;
+            end = toDate;
+          }
+
+          if (start && end) {
+            if (d < start || d > end) return false;
+          }
+        }
+
+        if (text) {
+          const acc = getAccountById(tx.accountId);
+          const inText = [
+            tx.title || "",
+            tx.subtitle || "",
+            tx.type || "",
+            acc ? acc.name : "",
+            acc ? acc.iban : "",
+            tx.details && tx.details.beneficiary ? tx.details.beneficiary : "",
+            tx.details && tx.details.to ? tx.details.to : "",
+            tx.details && tx.details.description ? tx.details.description : "",
+            tx.details && tx.details.reason ? tx.details.reason : "",
+            tx.details && tx.details.category ? tx.details.category : ""
+          ].join(" ").toLowerCase();
+          if (!inText.includes(text)) return false;
+        }
+
+        if (period === "custom") {
+          if (fromDate) {
+            const d = new Date(tx.date);
+            if (d < fromDate) return false;
+          }
+          if (toDate) {
+            const d = new Date(tx.date);
+            if (d > toDate) return false;
+          }
+        }
+
+        return true;
+      });
+
+      const slice = limit ? txs.slice(0, limit) : txs;
+
+      if (slice.length === 0) {
+        container.innerHTML = `<div style="font-size:0.85rem; color: var(--text-muted);">Nessun movimento.</div>`;
+        return;
+      }
+
+      slice.forEach(tx => {
+        const acc = getAccountById(tx.accountId);
+        const row = document.createElement("div");
+        row.className = "tx-row";
+
+        const amountClass = tx.amount >= 0 ? "positive" : "negative";
+        const sign = tx.amount >= 0 ? "+" : "";
+        const category = tx.details && tx.details.category ? tx.details.category : null;
+
+        row.innerHTML = `
+          <div class="tx-main">
+            <div class="tx-title">${tx.title}${category ? `<span class="category-chip">${category}</span>` : ""}</div>
+            <div class="tx-meta">
+              ${tx.date}${tx.time ? " · " + tx.time : ""} · ${acc ? acc.name : "Conto sconosciuto"}
+            </div>
+          </div>
+          <div class="tx-amount ${amountClass}">
+            ${sign}${formatAmountMasked(tx.amount)}
+          </div>
+        `;
+
+        row.addEventListener("click", () => {
+          lastViewBeforeDetail = currentView;
+          openTransactionDetail(tx);
+        });
+
+        container.appendChild(row);
+      });
+    }
+
+    function refreshSelects() {
+      const qrAcc = document.getElementById("qr-account");
+      const trFrom = document.getElementById("tr-from");
+
+      [qrAcc, trFrom].forEach(select => {
+        if (!select) return;
+        select.innerHTML = "";
+        state.accounts.forEach(acc => {
+          const opt = document.createElement("option");
+          opt.value = acc.id;
+          opt.textContent = `${acc.name} (${formatAmountMasked(acc.balance)})`;
+          if (acc.id === state.selectedAccountId) opt.selected = true;
+          select.appendChild(opt);
+        });
+      });
+
+      renderBeneficiariesSelect();
+      refreshCardPayAccount();
+    }
+
+    function renderVirtualCards() {
+      const container = document.getElementById("virtual-cards");
+      container.innerHTML = "";
+
+      if (state.virtualCards.length === 0) {
+        container.innerHTML = `<div style="font-size:0.8rem; color: var(--text-muted);">Nessuna carta virtuale creata.</div>`;
+        return;
+      }
+
+      state.virtualCards.forEach(card => {
+        const row = document.createElement("div");
+        row.className = "virtual-card-row";
+
+        row.innerHTML = `
+          <div class="virtual-card-meta">
+            <strong>${card.label}</strong>
+            <span class="virtual-card-number">${card.masked}</span>
+            <span style="font-size:0.75rem; color: var(--text-muted);">Limite: ${card.limit}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+            <div class="status-pill">${card.status}</div>
+            <div style="display:flex;gap:4px;">
+              <button class="btn btn-ghost btn-xs js-card-toggle" style="padding:4px 8px;font-size:0.7rem;">${card.status === "Attiva" ? "Sospendi" : "Riattiva"}</button>
+              <button class="btn btn-ghost btn-xs js-card-limit" style="padding:4px 8px;font-size:0.7rem;">Limite</button>
+            </div>
+          </div>
+        `;
+
+        row.addEventListener("click", (e) => {
+          if (e.target.classList.contains("js-card-toggle") || e.target.classList.contains("js-card-limit")) {
+            return;
+          }
+          alert(
+            "Dettagli carta virtuale:\n\n" +
+            "Nome: " + card.label + "\n" +
+            "Numero completo: " + card.full + "\n" +
+            "Scadenza: " + (card.expiry || "N/D") + "\n" +
+            "CVC: " + (card.cvc || "N/D") + "\n" +
+            "Stato: " + card.status + "\n" +
+            "Limite: " + card.limit
+          );
+        });
+
+        row.querySelector(".js-card-toggle").addEventListener("click", (e) => {
+          e.stopPropagation();
+          card.status = card.status === "Attiva" ? "Sospesa" : "Attiva";
+          saveState();
+          renderVirtualCards();
+        });
+
+        row.querySelector(".js-card-limit").addEventListener("click", (e) => {
+          e.stopPropagation();
+          const nuovo = prompt("Nuovo limite (es. CHF 500 / mese):", card.limit);
+          if (nuovo) {
+            card.limit = nuovo;
+            saveState();
+            renderVirtualCards();
+          }
+        });
+
+        container.appendChild(row);
+      });
+    }
+
+    function setView(viewId) {
+      const views = ["dashboard", "qr", "transfer", "cards", "movements", "account-detail", "tx-detail", "profile"];
+      views.forEach(id => {
+        const el = document.getElementById("view-" + id);
+        if (el) el.style.display = id === viewId ? "block" : "none";
+      });
+
+      if (viewId !== "tx-detail" && viewId !== "account-detail") {
+        currentView = viewId;
+      }
+
+      document.querySelectorAll(".nav-item").forEach(item => {
+        if (item.dataset.view === viewId) item.classList.add("active");
+        else item.classList.remove("active");
+      });
+
+      if (viewId === "movements") {
+        renderTransactions("tx-list-full", null, filterState);
+        renderStatementSummary();
+      }
+      if (viewId === "account-detail" && currentAccountDetailId) {
+        renderTransactions("tx-list-account", null, { accountId: currentAccountDetailId, type: "all", period:"all" });
+      }
+      if (viewId === "dashboard") {
+        renderTransactions("tx-list-dashboard", 5, { accountId: "all", type: "all", period:"all" });
+        renderCategorySummaryLastMonth();
+      }
+      if (viewId === "profile") {
+        renderHeader();
+      }
+    }
+
+    function setupFilters() {
+      const filterAccSel = document.getElementById("filter-account");
+      const filterTypeSel = document.getElementById("filter-type");
+      const filterPeriodSel = document.getElementById("filter-period");
+      const filterFrom = document.getElementById("filter-from");
+      const filterTo = document.getElementById("filter-to");
+      const filterSearch = document.getElementById("filter-search");
+
+      if (filterAccSel) {
+        filterAccSel.addEventListener("change", () => {
+          filterState.accountId = filterAccSel.value;
+          renderTransactions("tx-list-full", null, filterState);
+          renderStatementSummary();
+        });
+      }
+      if (filterTypeSel) {
+        filterTypeSel.addEventListener("change", () => {
+          filterState.type = filterTypeSel.value;
+          renderTransactions("tx-list-full", null, filterState);
+          renderStatementSummary();
+        });
+      }
+      if (filterPeriodSel) {
+        filterPeriodSel.addEventListener("change", () => {
+          filterState.period = filterPeriodSel.value;
+          const custom = filterPeriodSel.value === "custom";
+          filterFrom.disabled = !custom;
+          filterTo.disabled = !custom;
+          renderTransactions("tx-list-full", null, filterState);
+          renderStatementSummary();
+        });
+      }
+      if (filterFrom) {
+        filterFrom.addEventListener("change", () => {
+          filterState.from = filterFrom.value || null;
+          renderTransactions("tx-list-full", null, filterState);
+          renderStatementSummary();
+        });
+      }
+      if (filterTo) {
+        filterTo.addEventListener("change", () => {
+          filterState.to = filterTo.value || null;
+          renderTransactions("tx-list-full", null, filterState);
+          renderStatementSummary();
+        });
+      }
+      if (filterSearch) {
+        filterSearch.addEventListener("input", () => {
+          filterState.text = filterSearch.value;
+          renderTransactions("tx-list-full", null, filterState);
+          renderStatementSummary();
+        });
+      }
+
+      const exportBtn = document.getElementById("btn-export-csv");
+      if (exportBtn) {
+        exportBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          exportTransactionsCSV();
+        });
+      }
+    }
+
+    function renderCategorySummaryLastMonth() {
+      const container = document.getElementById("category-summary");
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      const totals = {};
+      state.transactions.forEach(tx => {
+        const d = new Date(tx.date);
+        if (d < start || d > end) return;
+        if (tx.amount >= 0) return; // solo uscite
+        const cat = (tx.details && tx.details.category) || "Altro";
+        if (!totals[cat]) totals[cat] = 0;
+        totals[cat] += Math.abs(tx.amount);
+      });
+
+      if (Object.keys(totals).length === 0) {
+        container.textContent = "Nessuna spesa registrata nell’ultimo mese.";
+        return;
+      }
+
+      let html = "<ul style='list-style:none;padding-left:0;font-size:0.85rem;'>";
+      Object.entries(totals).forEach(([cat, tot]) => {
+        html += `<li style="margin-bottom:4px;"><strong>${cat}:</strong> CHF ${tot.toFixed(2).replace(".", "'")}</li>`;
+      });
+      html += "</ul>";
+      container.innerHTML = html;
+    }
+
+    function renderStatementSummary() {
+      const container = document.getElementById("statement-summary");
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      let txs = [...state.transactions].filter(tx => {
+        const d = new Date(tx.date);
+        return d >= start && d <= end;
+      });
+
+      if (filterState.accountId !== "all") {
+        txs = txs.filter(tx => tx.accountId === filterState.accountId);
+      }
+
+      if (txs.length === 0) {
+        container.textContent = "Nessun movimento nel mese corrente con i filtri selezionati.";
+        return;
+      }
+
+      let totalIn = 0;
+      let totalOut = 0;
+      txs.forEach(tx => {
+        if (tx.amount > 0) totalIn += tx.amount;
+        else totalOut += Math.abs(tx.amount);
+      });
+
+      const acc = filterState.accountId === "all" ? null : getAccountById(filterState.accountId);
+      const labelConto = acc ? acc.name : "Tutti i conti";
+
+      const html = `
+        <div><strong>Conto:</strong> ${labelConto}</div>
+        <div><strong>Periodo:</strong> ${start.toISOString().slice(0,10)} – ${end.toISOString().slice(0,10)}</div>
+        <div style="margin-top:6px;">
+          <div><strong>Entrate:</strong> CHF ${totalIn.toFixed(2).replace(".", "'")}</div>
+          <div><strong>Uscite:</strong> CHF ${totalOut.toFixed(2).replace(".", "'")}</div>
+        </div>
+      `;
+      container.innerHTML = html;
+    }
+
+    function exportTransactionsCSV() {
+      let txs = [...state.transactions].sort((a, b) =>
+        new Date(a.createdAt || a.date) - new Date(b.createdAt || a.date)
+      );
+      txs = txs.filter(tx => {
+        let ok = true;
+        const accFilter = filterState.accountId;
+        const typeFilter = filterState.type;
+        const text = (filterState.text || "").toLowerCase();
+        const period = filterState.period;
+        const fromDate = filterState.from ? new Date(filterState.from) : null;
+        const toDate = filterState.to ? new Date(filterState.to) : null;
+
+        if (accFilter !== "all" && tx.accountId !== accFilter) ok = false;
+
+        if (typeFilter !== "all") {
+          const instantFlag = tx.details && !!tx.details.instant;
+          if (typeFilter === "qr") ok = tx.type === "qr" && !instantFlag;
+          else if (typeFilter === "qr_instant") ok = tx.type === "qr" && instantFlag;
+          else if (typeFilter === "transfer") ok = tx.type === "transfer" && !instantFlag;
+          else if (typeFilter === "transfer_instant") ok = tx.type === "transfer" && instantFlag;
+          else if (typeFilter === "internal") ok = tx.type === "transfer-internal";
+          else if (typeFilter === "card") ok = tx.type === "card";
+        }
+
+        if (!ok) return false;
+
+        if (period !== "all") {
+          const d = new Date(tx.date);
+          const now = new Date();
+          let start = null, end = null;
+
+          if (period === "7d") {
+            end = now;
+            start = new Date();
+            start.setDate(now.getDate() - 7);
+          } else if (period === "30d") {
+            end = now;
+            start = new Date();
+            start.setDate(now.getDate() - 30);
+          } else if (period === "month") {
+            start = new Date(now.getFullYear(), now.getMonth(), 1);
+            end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+          } else if (period === "year") {
+            start = new Date(now.getFullYear(), 0, 1);
+            end = new Date(now.getFullYear(), 11, 31);
+          } else if (period === "custom" && fromDate && toDate) {
+            start = fromDate;
+            end = toDate;
+          }
+
+          if (start && end) {
+            if (d < start || d > end) return false;
+          }
+        }
+
+        if (period === "custom") {
+          const d = new Date(tx.date);
+          if (fromDate && d < fromDate) return false;
+          if (toDate && d > toDate) return false;
+        }
+
+        if (text) {
+          const acc = getAccountById(tx.accountId);
+          const inText = [
+            tx.title || "",
+            tx.subtitle || "",
+            tx.type || "",
+            acc ? acc.name : "",
+            acc ? acc.iban : "",
+            tx.details && tx.details.beneficiary ? tx.details.beneficiary : "",
+            tx.details && tx.details.to ? tx.details.to : "",
+            tx.details && tx.details.description ? tx.details.description : "",
+            tx.details && tx.details.reason ? tx.details.reason : "",
+            tx.details && tx.details.category ? tx.details.category : ""
+          ].join(" ").toLowerCase();
+          if (!inText.includes(text)) return false;
+        }
+
+        return true;
+      });
+
+      if (txs.length === 0) {
+        showToast("Nessun movimento da esportare con i filtri attuali.");
+        return;
+      }
+
+      const rows = [];
+      rows.push(["Data","Ora","Conto","IBAN","Tipo","Categoria","Titolo","Descrizione","Importo"].join(";"));
+
+      txs.forEach(tx => {
+        const acc = getAccountById(tx.accountId);
+        const cat = tx.details && tx.details.category ? tx.details.category : "";
+        const desc = tx.subtitle || "";
+        rows.push([
+          tx.date,
+          tx.time || "",
+          acc ? acc.name : "",
+          acc ? acc.iban : "",
+          tx.type,
+          cat,
+          tx.title.replace(/;/g, ","),
+          desc.replace(/;/g, ","),
+          tx.amount.toFixed(2).replace(".", "'")
+        ].join(";"));
+      });
+
+      const csv = rows.join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "movimenti-ebanking.csv";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast("CSV esportato.");
+    }
+
+    function updateAccountTransferFromLabel(acc) {
+      const input = document.getElementById("acc-transfer-from-label");
+      if (!input) return;
+      input.value = `${acc.name} (${formatAmountMasked(acc.balance)})`;
+    }
+
+    function populateAccountTransferTargets(currentId) {
+      const sel = document.getElementById("acc-transfer-target");
+      if (!sel) return;
+      sel.innerHTML = "";
+      state.accounts
+        .filter(a => a.id !== currentId)
+        .forEach(acc => {
+          const opt = document.createElement("option");
+          opt.value = acc.id;
+          opt.textContent = acc.name;
+          sel.appendChild(opt);
+        });
+      if (sel.options.length === 0) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "Nessun altro conto disponibile";
+        sel.appendChild(opt);
+      }
+    }
+
+    function openAccountDetail(accountId) {
+      const acc = getAccountById(accountId);
+      if (!acc) return;
+      currentAccountDetailId = acc.id;
+
+      document.getElementById("account-detail-name").textContent = acc.name;
+      document.getElementById("account-detail-iban").textContent = acc.iban;
+      document.getElementById("account-detail-balance").textContent = formatAmountMasked(acc.balance);
+      document.getElementById("account-detail-type").textContent = acc.type;
+
+      updateAccountTransferFromLabel(acc);
+      populateAccountTransferTargets(acc.id);
+
+      renderTransactions("tx-list-account", null, { accountId: acc.id, type: "all", period:"all" });
+      setView("account-detail");
+    }
+
+    function openTransactionDetail(tx) {
+      const body = document.getElementById("tx-detail-body");
+      if (!body) return;
+
+      const acc = getAccountById(tx.accountId);
+      let html = "";
+      html += `<h3 style="margin-bottom:6px; font-size:1rem;">${tx.title}</h3>`;
+      if (tx.subtitle) {
+        html += `<p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:8px;">${tx.subtitle}</p>`;
+      }
+      html += `<div style="font-size:0.9rem; line-height:1.6;">`;
+      html += `<div><strong>Data:</strong> ${tx.date}</div>`;
+      if (tx.time) {
+        html += `<div><strong>Ora:</strong> ${tx.time}</div>`;
+      }
+      html += `<div><strong>Importo registrato:</strong> ${formatAmount(tx.amount)}</div>`;
+      if (acc) {
+        html += `<div><strong>Conto:</strong> ${acc.name} (${acc.iban})</div>`;
+      }
+      if (tx.details && tx.details.category) {
+        html += `<div><strong>Categoria:</strong> ${tx.details.category}</div>`;
+      }
+
+      if (tx.type === "qr" && tx.details) {
+        html += `<hr style="margin:8px 0;border:none;border-top:1px solid #e0e0e0;">`;
+        html += `<div><strong>Beneficiario:</strong> ${tx.details.beneficiary}</div>`;
+        html += `<div><strong>Riferimento:</strong> ${tx.details.reference}</div>`;
+        if (tx.details.description) {
+          html += `<div><strong>Descrizione:</strong> ${tx.details.description}</div>`;
+        }
+        html += `<div><strong>Importo fattura:</strong> ${formatAmount(tx.details.amountBase)}</div>`;
+        if (tx.details.instant) {
+          html += `<div><strong>Commissione:</strong> ${formatAmount(tx.details.fee || 0)}</div>`;
+          html += `<div><strong>Totale addebitato:</strong> ${formatAmount(tx.details.totalDebit || tx.amount)}</div>`;
+          html += `<div><strong>Tipo:</strong> Pagamento QR istantaneo</div>`;
+        } else {
+          html += `<div><strong>Tipo:</strong> Pagamento QR</div>`;
+        }
+      }
+
+      if (tx.type === "transfer" && tx.details) {
+        html += `<hr style="margin:8px 0;border:none;border-top:1px solid #e0e0e0;">`;
+        if (tx.amount >= 0) {
+          html += `<div><strong>Mittente:</strong> ${tx.details.fromName || "N/D"}</div>`;
+          html += `<div><strong>Mittente (IBAN):</strong> ${tx.details.fromIban || "N/D"}</div>`;
+          if (tx.details.reason) {
+            html += `<div><strong>Motivo:</strong> ${tx.details.reason}</div>`;
+          }
+          html += `<div><strong>Importo accreditato:</strong> ${formatAmount(tx.details.amountBase || tx.amount)}</div>`;
+          html += `<div><strong>Tipo:</strong> Bonifico in entrata</div>`;
+        } else {
+          html += `<div><strong>Destinatario (IBAN):</strong> ${tx.details.to}</div>`;
+          if (tx.details.reason) {
+            html += `<div><strong>Motivo:</strong> ${tx.details.reason}</div>`;
+          }
+          html += `<div><strong>Importo base bonifico:</strong> ${formatAmount(tx.details.amountBase)}</div>`;
+          if (tx.details.fee && tx.details.fee > 0) {
+            html += `<div><strong>Commissione:</strong> ${formatAmount(tx.details.fee)}</div>`;
+            html += `<div><strong>Totale addebitato:</strong> ${formatAmount(tx.details.totalDebit)}</div>`;
+            html += `<div><strong>Tipo:</strong> Bonifico istantaneo</div>`;
+          } else {
+            html += `<div><strong>Totale addebitato:</strong> ${formatAmount(tx.details.totalDebit)}</div>`;
+            html += `<div><strong>Tipo:</strong> Bonifico standard</div>`;
+          }
+        }
+      }
+
+      if (tx.type === "transfer-internal" && tx.details) {
+        html += `<hr style="margin:8px 0;border:none;border-top:1px solid #e0e0e0;">`;
+        html += `<div><strong>Trasferimento interno</strong></div>`;
+        html += `<div><strong>Da:</strong> ${tx.details.fromAccountName}</div>`;
+        html += `<div><strong>A:</strong> ${tx.details.toAccountName}</div>`;
+        html += `<div><strong>Importo:</strong> ${formatAmount(tx.details.amountBase)}</div>`;
+        html += `<div><strong>Direzione:</strong> ${tx.details.direction === "out" ? "Uscita dal conto" : "Entrata nel conto"}</div>`;
+      }
+
+      if (tx.type === "card" && tx.details) {
+        html += `<hr style="margin:8px 0;border:none;border-top:1px solid #e0e0e0;">`;
+        html += `<div><strong>Metodo:</strong> Pagamento con carta</div>`;
+        if (tx.details.description) {
+          html += `<div><strong>Descrizione:</strong> ${tx.details.description}</div>`;
+        }
+      }
+
+      html += `</div>`;
+      body.innerHTML = html;
+      setView("tx-detail");
+    }
+
+    function renderBeneficiariesSelect() {
+      const sel = document.getElementById("tr-benef-saved");
+      if (!sel) return;
+      const current = sel.value || "";
+      sel.innerHTML = '<option value="">(Nessuno)</option>';
+      state.beneficiaries.forEach(b => {
+        const opt = document.createElement("option");
+        opt.value = b.id;
+        opt.textContent = `${b.name} (${b.iban})`;
+        sel.appendChild(opt);
+      });
+      sel.value = current;
+    }
+
+    function refreshCardPayAccount() {
+      const sel = document.getElementById("card-pay-account");
+      if (!sel) return;
+      const current = sel.value;
+      sel.innerHTML = "";
+      state.accounts.forEach(acc => {
+        const opt = document.createElement("option");
+        opt.value = acc.id;
+        opt.textContent = `${acc.name} (${formatAmountMasked(acc.balance)})`;
+        sel.appendChild(opt);
+      });
+      if (current) sel.value = current;
+    }
+
+    function setupForms() {
+      const formQr = document.getElementById("form-qr");
+      if (formQr) {
+        formQr.addEventListener("submit", (e) => {
+          e.preventDefault();
+          resetSessionTimer();
+          const accountId = document.getElementById("qr-account").value;
+          const amount = parseFloat(document.getElementById("qr-amount").value || "0");
+          const beneficiary = document.getElementById("qr-beneficiary").value.trim();
+          const reference = document.getElementById("qr-reference").value.trim();
+          const desc = document.getElementById("qr-description").value.trim();
+          const instant = document.getElementById("qr-instant").checked;
+          const category = document.getElementById("qr-category").value || "";
+
+          if (!accountId || !beneficiary || !reference || amount <= 0) {
+            showToast("Compila tutti i campi obbligatori.");
+            return;
+          }
+
+          const acc = getAccountById(accountId);
+          if (!acc) return;
+
+          let fee = 0;
+          let totalDebit = amount;
+          if (instant) {
+            fee = 2;
+            totalDebit += fee;
+          }
+
+          if (acc.balance < totalDebit) {
+            showToast("Saldo insufficiente sul conto selezionato.");
+            return;
+          }
+
+          acc.balance -= totalDebit;
+
+          const now = new Date();
+          const iso = now.toISOString();
+          const dateStr = iso.slice(0, 10);
+          const timeStr = now.toLocaleTimeString("it-CH", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+          });
+
+          const tx = {
+            id: state.nextTxId++,
+            type: "qr",
+            title: "Pagamento QR a " + beneficiary,
+            subtitle: "Rif. " + reference + (desc ? " · " + desc : ""),
+            date: dateStr,
+            time: timeStr,
+            createdAt: iso,
+            amount: -totalDebit,
+            accountId: accountId,
+            details: {
+              beneficiary,
+              reference,
+              description: desc,
+              amountBase: amount,
+              fee,
+              totalDebit,
+              instant,
+              fromAccountId: accountId,
+              fromAccountIban: acc.iban,
+              category
+            }
+          };
+          state.transactions.push(tx);
+
+          saveState();
+          renderAccounts();
+          renderTransactions("tx-list-dashboard", 5, { accountId: "all", type: "all", period:"all" });
+          renderCategorySummaryLastMonth();
+
+          if (instant) {
+            showToast("Pagamento QR istantaneo eseguito. Il destinatario ha già ricevuto il pagamento alle " + timeStr + ".");
+          } else {
+            showToast("Pagamento QR eseguito.");
+          }
+
+          formQr.reset();
+          refreshSelects();
+        });
+      }
+
+      const formTransfer = document.getElementById("form-transfer");
+      if (formTransfer) {
+        formTransfer.addEventListener("submit", (e) => {
+          e.preventDefault();
+          resetSessionTimer();
+          const fromId = document.getElementById("tr-from").value;
+          const to = document.getElementById("tr-to").value.trim();
+          const amount = parseFloat(document.getElementById("tr-amount").value || "0");
+          const dateInput = document.getElementById("tr-date").value;
+          const instant = document.getElementById("tr-instant").checked;
+          const reason = document.getElementById("tr-reason").value.trim();
+          const saveBenef = document.getElementById("tr-save-benef").checked;
+          const benefName = document.getElementById("tr-benef-name").value.trim();
+          const category = document.getElementById("tr-category").value || "";
+
+          if (!fromId || !to || amount <= 0) {
+            showToast("Compila tutti i campi obbligatori.");
+            return;
+          }
+
+          const fromAcc = getAccountById(fromId);
+          if (!fromAcc) return;
+
+          const now = new Date();
+          const iso = now.toISOString();
+          let execDate;
+
+          if (instant) {
+            execDate = iso.slice(0, 10);
+          } else {
+            execDate = dateInput || iso.slice(0, 10);
+          }
+
+                    const timeStr = now.toLocaleTimeString("it-CH", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+          });
+
+          // Calcolo commissione per istantaneo
+          let fee = 0;
+          let totalDebit = amount;
+          if (instant) {
+            fee = 2;
+            totalDebit += fee;
+          }
+
+          if (fromAcc.balance < totalDebit) {
+            showToast("Saldo insufficiente sul conto selezionato.");
+            return;
+          }
+
+          fromAcc.balance -= totalDebit;
+
+          // Salva beneficiario se richiesto
+          if (saveBenef && benefName && to) {
+            const exists = state.beneficiaries.some(
+              b => b.iban.replace(/\s/g, "") === to.replace(/\s/g, "") && b.name === benefName
+            );
+            if (!exists) {
+              state.beneficiaries.push({
+                id: "b_" + Date.now(),
+                name: benefName,
+                iban: to
+              });
+              renderBeneficiariesSelect();
+            }
+          }
+
+          // Crea transazione di bonifico (solo uscita, niente trasferimenti interni qui)
+          const tx = {
+            id: state.nextTxId++,
+            type: "transfer",
+            title: "Bonifico a " + (benefName || to),
+            subtitle: reason || "Bonifico in uscita",
+            date: execDate,
+            time: timeStr,
+            createdAt: iso,
+            amount: -totalDebit,
+            accountId: fromId,
+            details: {
+              to,
+              beneficiary: benefName || "",
+              reason,
+              amountBase: amount,
+              fee,
+              totalDebit,
+              instant,
+              fromAccountId: fromId,
+              fromAccountIban: fromAcc.iban,
+              category
+            }
+          };
+          state.transactions.push(tx);
+
+          // Aggiorna select "recurring-source" per possibili pagamenti ricorrenti
+          updateRecurringSourceOptions();
+
+          saveState();
+          renderAccounts();
+          renderTransactions("tx-list-dashboard", 5, { accountId: "all", type: "all", period: "all" });
+          renderCategorySummaryLastMonth();
+
+          if (instant) {
+            showToast("Bonifico istantaneo eseguito. Il destinatario ha già ricevuto il pagamento alle " + timeStr + ".");
+          } else {
+            showToast("Bonifico registrato.");
+          }
+
+          formTransfer.reset();
+          refreshSelects();
+        });
+      }
+
+      // Trasferimento interno tra conti (dalla pagina dettaglio conto)
+      const formAccTransfer = document.getElementById("form-account-transfer");
+      if (formAccTransfer) {
+        formAccTransfer.addEventListener("submit", (e) => {
+          e.preventDefault();
+          resetSessionTimer();
+
+          if (!currentAccountDetailId) {
+            showToast("Nessun conto selezionato.");
+            return;
+          }
+
+          const fromId = currentAccountDetailId;
+          const toId = document.getElementById("acc-transfer-target").value;
+          const amount = parseFloat(document.getElementById("acc-transfer-amount").value || "0");
+          const reason = document.getElementById("acc-transfer-reason").value.trim();
+
+          if (!toId || amount <= 0) {
+            showToast("Compila i campi per il trasferimento interno.");
+            return;
+          }
+
+          const fromAcc = getAccountById(fromId);
+          const toAcc = getAccountById(toId);
+          if (!fromAcc || !toAcc) return;
+
+          if (fromAcc.balance < amount) {
+            showToast("Saldo insufficiente sul conto di partenza.");
+            return;
+          }
+
+          fromAcc.balance -= amount;
+          toAcc.balance += amount;
+
+          const now = new Date();
+          const iso = now.toISOString();
+          const dateStr = iso.slice(0, 10);
+          const timeStr = now.toLocaleTimeString("it-CH", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+          });
+
+          // Movimento in uscita dal conto di partenza
+          const txOut = {
+            id: state.nextTxId++,
+            type: "transfer-internal",
+            title: "Trasferimento interno a " + toAcc.name,
+            subtitle: reason || "Trasferimento tra conti",
+            date: dateStr,
+            time: timeStr,
+            createdAt: iso,
+            amount: -amount,
+            accountId: fromId,
+            details: {
+              fromAccountId: fromId,
+              toAccountId: toId,
+              fromAccountName: fromAcc.name,
+              toAccountName: toAcc.name,
+              amountBase: amount,
+              direction: "out"
+            }
+          };
+
+          // Movimento in entrata nel conto di arrivo
+          const txIn = {
+            id: state.nextTxId++,
+            type: "transfer-internal",
+            title: "Trasferimento interno da " + fromAcc.name,
+            subtitle: reason || "Trasferimento tra conti",
+            date: dateStr,
+            time: timeStr,
+            createdAt: iso,
+            amount: amount,
+            accountId: toId,
+            details: {
+              fromAccountId: fromId,
+              toAccountId: toId,
+              fromAccountName: fromAcc.name,
+              toAccountName: toAcc.name,
+              amountBase: amount,
+              direction: "in"
+            }
+          };
+
+          state.transactions.push(txOut, txIn);
+
+          saveState();
+          renderAccounts();
+          renderTransactions("tx-list-account", null, { accountId: currentAccountDetailId, type: "all", period: "all" });
+          renderTransactions("tx-list-dashboard", 5, { accountId: "all", type: "all", period: "all" });
+          renderCategorySummaryLastMonth();
+
+          showToast("Trasferimento interno eseguito.");
+          formAccTransfer.reset();
+          const currentAcc = getAccountById(currentAccountDetailId);
+          if (currentAcc) {
+            updateAccountTransferFromLabel(currentAcc);
+          }
+        });
+      }
+
+      // Pagamento con carta (manuale)
+      const formCardPayment = document.getElementById("form-card-payment");
+      if (formCardPayment) {
+        formCardPayment.addEventListener("submit", (e) => {
+          e.preventDefault();
+          resetSessionTimer();
+
+          const accountId = document.getElementById("card-pay-account").value;
+          const amount = parseFloat(document.getElementById("card-pay-amount").value || "0");
+          const desc = document.getElementById("card-pay-desc").value.trim();
+          const category = document.getElementById("card-pay-category").value || "";
+
+          if (!accountId || amount <= 0) {
+            showToast("Compila conto e importo per il pagamento con carta.");
+            return;
+          }
+
+          const acc = getAccountById(accountId);
+          if (!acc) return;
+
+          if (acc.balance < amount) {
+            showToast("Saldo insufficiente sul conto selezionato.");
+            return;
+          }
+
+          acc.balance -= amount;
+
+          const now = new Date();
+          const iso = now.toISOString();
+          const dateStr = iso.slice(0, 10);
+          const timeStr = now.toLocaleTimeString("it-CH", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+          });
+
+          const tx = {
+            id: state.nextTxId++,
+            type: "card",
+            title: "Pagamento con carta",
+            subtitle: desc || "Pagamento carta",
+            date: dateStr,
+            time: timeStr,
+            createdAt: iso,
+            amount: -amount,
+            accountId: accountId,
+            details: {
+              description: desc,
+              category
+            }
+          };
+
+          state.transactions.push(tx);
+          saveState();
+          renderAccounts();
+          renderTransactions("tx-list-dashboard", 5, { accountId: "all", type: "all", period: "all" });
+          renderCategorySummaryLastMonth();
+
+          showToast("Pagamento con carta registrato.");
+          formCardPayment.reset();
+        });
+      }
+    }
+
+    // Gestione pagamenti ricorrenti (solo elenco)
+    function updateRecurringSourceOptions() {
+      const sel = document.getElementById("recurring-source");
+      if (!sel) return;
+      const lastTransfers = state.transactions
+        .filter(tx => tx.type === "transfer" && tx.amount < 0)
+        .sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date))
+        .slice(0, 10);
+
+      sel.innerHTML = "";
+      const optDefault = document.createElement("option");
+      optDefault.value = "";
+      optDefault.textContent = "(Seleziona movimento)";
+      sel.appendChild(optDefault);
+
+      lastTransfers.forEach(tx => {
+        const opt = document.createElement("option");
+        opt.value = tx.id;
+        opt.textContent = `${tx.date} · ${tx.title} · ${formatAmount(tx.amount)}`;
+        sel.appendChild(opt);
+      });
+    }
+
+    function renderRecurringList() {
+      const container = document.getElementById("recurring-list");
+      if (!container) return;
+
+      if (!state.recurringPayments || state.recurringPayments.length === 0) {
+        container.textContent = "Nessun pagamento ricorrente registrato.";
+        return;
+      }
+
+      let html = "<ul style='list-style:none;padding-left:0;font-size:0.85rem;'>";
+      state.recurringPayments.forEach(rp => {
+        html += `<li style="margin-bottom:4px;">
+          <strong>${rp.title}</strong> · ${rp.frequency} · CHF ${rp.amount.toFixed(2).replace(".", "'")}<br>
+          <span style="color:var(--text-muted);">${rp.to}</span>
+        </li>`;
+      });
+      html += "</ul>";
+      container.innerHTML = html;
+    }
+
+    function setupRecurring() {
+      const btnAdd = document.getElementById("btn-add-recurring");
+      if (!btnAdd) return;
+
+      btnAdd.addEventListener("click", () => {
+        const selSource = document.getElementById("recurring-source");
+        const freqSel = document.getElementById("recurring-frequency");
+        if (!selSource || !freqSel) return;
+
+        const txId = parseInt(selSource.value, 10);
+        const freq = freqSel.value;
+        if (!txId || !freq) {
+          showToast("Seleziona un movimento e una frequenza.");
+          return;
+        }
+
+        const tx = state.transactions.find(t => t.id === txId);
+        if (!tx || !tx.details) {
+          showToast("Movimento non valido per ricorrente.");
+          return;
+        }
+
+        state.recurringPayments.push({
+          id: "r_" + Date.now(),
+          title: tx.title,
+          amount: Math.abs(tx.details.amountBase || tx.amount),
+          to: tx.details.to || "",
+          frequency: freq
+        });
+
+        saveState();
+        renderRecurringList();
+        showToast("Pagamento ricorrente registrato (solo elenco).");
+      });
+    }
+
+    // Gestione carta di debito (pausa + dettagli)
+    function setupDebitCard() {
+      const toggle = document.getElementById("debit-toggle");
+      const statusLabel = document.getElementById("debit-status-label");
+      const cardEl = document.querySelector(".js-debit-card");
+      const numberEl = document.getElementById("debit-card-number");
+
+      function renderDebitState() {
+        if (state.debitPaused) {
+          statusLabel.textContent = "Sospesa";
+          statusLabel.classList.add("pill");
+          cardEl.style.opacity = "0.6";
+        } else {
+          statusLabel.textContent = "Attiva";
+          statusLabel.classList.add("pill");
+          cardEl.style.opacity = "1";
+        }
+        // maschera numero nella vista principale
+        numberEl.textContent = debitCardData.maskedNumber;
+      }
+
+      if (toggle) {
+        toggle.checked = !state.debitPaused;
+        toggle.addEventListener("change", () => {
+          state.debitPaused = !toggle.checked;
+          saveState();
+          renderDebitState();
+          showToast(state.debitPaused ? "Carta di debito sospesa." : "Carta di debito attiva.");
+        });
+      }
+
+      if (cardEl) {
+        cardEl.addEventListener("click", () => {
+          // mostra i dettagli completi in un alert semplice
+          alert(
+            "Carta di debito RAIFFEISEN\n\n" +
+            "Titolare: " + debitCardData.holder + "\n" +
+            "Numero carta: " + debitCardData.fullNumber + "\n" +
+            "Scadenza: " + debitCardData.expiry + "\n" +
+            "CVC: " + debitCardData.cvv
+          );
+        });
+      }
+
+      renderDebitState();
+    }
+
+    // Creazione carta virtuale con numero, scadenza, CVC
+    function setupVirtualCards() {
+      const btnAdd = document.getElementById("btn-add-virtual");
+      if (!btnAdd) return;
+
+      btnAdd.addEventListener("click", () => {
+        const id = state.nextCardId++;
+        // genera dati finti
+        const last4 = Math.floor(1000 + Math.random() * 9000);
+        const mid2 = Math.floor(10 + Math.random() * 89);
+        const mid4 = Math.floor(1000 + Math.random() * 9000);
+        const full = `5274  ${mid2}${last4.toString()[0]}${last4.toString()[1]}  ${mid4.toString().slice(0,2)}${mid4.toString().slice(2)}  ${last4}`;
+        const masked = "5274 **** **** " + last4;
+        const expMonth = String(Math.floor(1 + Math.random() * 12)).padStart(2, "0");
+        const expYear = String(26 + Math.floor(Math.random() * 5));
+        const cvc = String(Math.floor(100 + Math.random() * 900));
+
+        const card = {
+          id,
+          label: "Carta virtuale #" + id,
+          masked,
+          full,
+          expiry: `${expMonth}/${expYear}`,
+          cvc,
+          status: "Attiva",
+          limit: "CHF 500 / mese"
+        };
+        state.virtualCards.push(card);
+        saveState();
+        renderVirtualCards();
+        showToast("Nuova carta virtuale creata.");
+      });
+
+      renderVirtualCards();
+    }
+
+    // QR SCAN (uso fotocamera + jsQR)
+    let qrStream = null;
+    function setupQrScan() {
+      const btnScan = document.getElementById("btn-qr-scan");
+      const area = document.getElementById("qr-scan-area");
+      const video = document.getElementById("qr-video");
+
+      if (!btnScan || !area || !video) return;
+
+      let scanning = false;
+      let scanInterval = null;
+
+      async function startScan() {
+        if (scanning) return;
+        scanning = true;
+        area.style.display = "block";
+        try {
+          qrStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" }
+          });
+          video.srcObject = qrStream;
+          video.play();
+
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+
+          scanInterval = setInterval(() => {
+            if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, canvas.width, canvas.height);
+
+            if (code && code.data) {
+              // Qui dipende dal formato QR Swiss Payment. Per la demo:
+              // supponiamo data = "BENEFICIARIO|IMPORTO|RIF"
+              const parts = code.data.split("|");
+              if (parts.length >= 3) {
+                document.getElementById("qr-beneficiary").value = parts[0];
+                document.getElementById("qr-amount").value = parseFloat(parts[1].replace(",", ".")) || "";
+                document.getElementById("qr-reference").value = parts[2];
+              }
+              stopScan();
+              showToast("Dati QR letti e compilati.");
+            }
+          }, 500);
+        } catch (e) {
+          console.error(e);
+          showToast("Impossibile accedere alla fotocamera.");
+          scanning = false;
+          area.style.display = "none";
+        }
+      }
+
+      function stopScan() {
+        if (scanInterval) clearInterval(scanInterval);
+        scanInterval = null;
+        if (qrStream) {
+          qrStream.getTracks().forEach(t => t.stop());
+        }
+        qrStream = null;
+        video.srcObject = null;
+        scanning = false;
+        area.style.display = "none";
+      }
+
+      btnScan.addEventListener("click", () => {
+        if (scanning) {
+          stopScan();
+        } else {
+          startScan();
+        }
+      });
+    }
+
+    // Sidebar / menù laterale
+    function setupSidebar() {
+      const btnMenu = document.getElementById("btn-toggle-menu");
+      const overlay = document.getElementById("sidebar-overlay");
+
+      if (btnMenu) {
+        btnMenu.addEventListener("click", (e) => {
+          e.stopPropagation();
+          document.body.classList.toggle("sidebar-open");
+        });
+      }
+
+      if (overlay) {
+        overlay.addEventListener("click", () => {
+          document.body.classList.remove("sidebar-open");
+        });
+      }
+
+      // Chiudi il menu cliccando in qualunque punto della pagina se è aperto
+      document.addEventListener("click", (e) => {
+        const sidebar = document.querySelector("nav.sidebar");
+        const isClickInsideSidebar = sidebar && sidebar.contains(e.target);
+        const isClickOnMenuButton = btnMenu && btnMenu.contains(e.target);
+        if (!isClickInsideSidebar && !isClickOnMenuButton) {
+          document.body.classList.remove("sidebar-open");
+        }
+      }, true);
+    }
+
+    // Toggle tema e saldi
+    function setupToggles() {
+      const btnTheme = document.getElementById("btn-toggle-theme");
+      const btnBalance = document.getElementById("btn-toggle-balance");
+      const loginDarkToggle = document.getElementById("login-dark-toggle");
+
+      if (btnTheme) {
+        btnTheme.addEventListener("click", () => {
+          state.darkMode = !state.darkMode;
+          applyTheme();
+          saveState();
+        });
+      }
+
+      if (btnBalance) {
+        btnBalance.addEventListener("click", () => {
+          state.hideBalances = !state.hideBalances;
+          saveState();
+          renderAccounts();
+          renderTransactions("tx-list-dashboard", 5, { accountId: "all", type: "all", period:"all" });
+          if (currentView === "movements") {
+            renderTransactions("tx-list-full", null, filterState);
+          }
+          if (currentView === "account-detail" && currentAccountDetailId) {
+            renderTransactions("tx-list-account", null, { accountId: currentAccountDetailId, type: "all", period:"all" });
+          }
+        });
+      }
+
+      if (loginDarkToggle) {
+        loginDarkToggle.addEventListener("change", () => {
+          state.darkMode = loginDarkToggle.checked;
+          applyTheme();
+          saveState();
+        });
+      }
+    }
+
+    // LOGIN con credenziali fisse e caricamento finto
+    function setupLogin() {
+      loadState();
+      applyTheme();
+
+      // auto-imposta dark toggle sul login secondo stato
+      const loginDarkToggle = document.getElementById("login-dark-toggle");
+      if (loginDarkToggle) loginDarkToggle.checked = state.darkMode;
+
+      ensureInitialIncomingTx();
+
+      const loginBtn = document.getElementById("login-btn");
+      const userInput = document.getElementById("login-user");
+      const pinInput = document.getElementById("login-pin");
+      const btnText = document.getElementById("login-btn-text");
+
+      let attempts = 0;
+      let locked = false;
+
+      // inserimento automatico "-" dopo le prime 5 cifre (13319-0906)
+      if (userInput) {
+        userInput.addEventListener("input", () => {
+          let v = userInput.value.replace(/[^0-9]/g, "");
+          if (v.length > 5) {
+            v = v.slice(0, 5) + "-" + v.slice(5, 9);
+          }
+          userInput.value = v;
+        });
+      }
+
+      if (loginBtn) {
+        loginBtn.addEventListener("click", () => {
+          if (locked) {
+            showToast("Accesso bloccato dopo troppi tentativi.");
+            return;
+          }
+
+          const u = (userInput.value || "").trim();
+          const p = (pinInput.value || "").trim();
+
+          if (u !== "13319-0906" || p !== "258012") {
+            attempts++;
+            if (attempts >= 3) {
+              locked = true;
+              showToast("Accesso bloccato dopo 3 tentativi errati.");
+            } else {
+              showToast("Credenziali non valide.");
+            }
+            return;
+          }
+
+          // Accesso ok -> finto caricamento 4-5 secondi
+          btnText.textContent = "Accesso in corso...";
+          loginBtn.disabled = true;
+
+          setTimeout(() => {
+            document.getElementById("login-screen").style.display = "none";
+            document.getElementById("app-root").style.display = "flex";
+
+            // imposta nome utente fisso (puoi cambiarlo se vuoi)
+            state.userName = "Laura Maria Mazzamuto";
+
+            const now = new Date();
+            const label = now.toLocaleString("it-CH");
+            state.lastLogin = label;
+
+            saveState();
+            renderHeader();
+            renderAccounts();
+            refreshSelects();
+            renderTransactions("tx-list-dashboard", 5, { accountId: "all", type: "all", period:"all" });
+            renderCategorySummaryLastMonth();
+            renderRecurringList();
+            updateRecurringSourceOptions();
+
+            setupSidebar();
+            setupToggles();
+            setupDebitCard();
+            setupVirtualCards();
+            setupQrScan();
+            setupFilters();
+            resetSessionTimer();
+
+            showToast("Accesso effettuato.");
+
+            // ascolta interazioni per il timeout di sessione
+            ["click", "keydown", "mousemove"].forEach(ev => {
+              document.addEventListener(ev, resetSessionTimer);
+            });
+          }, 4200); // ~4.2 secondi di caricamento
+        });
+      }
+    }
+
+    // Navigazione tramite menu laterale o pulsanti "data-jump"
+    function setupNavigation() {
+      document.querySelectorAll(".nav-item").forEach(item => {
+        item.addEventListener("click", () => {
+          const viewId = item.dataset.view;
+          setView(viewId);
+        });
+      });
+
+      document.querySelectorAll("[data-jump]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const viewId = btn.dataset.jump;
+          setView(viewId);
+        });
+      });
+
+      const btnAccountBack = document.getElementById("btn-account-back");
+      if (btnAccountBack) {
+        btnAccountBack.addEventListener("click", () => {
+          setView("dashboard");
+        });
+      }
+
+      const btnTxBack = document.getElementById("btn-tx-back");
+      if (btnTxBack) {
+        btnTxBack.addEventListener("click", () => {
+          setView(lastViewBeforeDetail || "movements");
+        });
+      }
+    }
+
+    // Inizializzazione generale
+    document.addEventListener("DOMContentLoaded", () => {
+      setupLogin();
+      setupForms();
+      setupRecurring();
+      setupNavigation();
+      // il resto (sidebar, toggles, ecc.) viene completato dopo il login
+    });
+  </script>
+</body>
+</html>
+
+
+
+
+
